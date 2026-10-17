@@ -21,7 +21,7 @@ Usamos la **Opción C: arranca el que sabe, cierra el que no sabe**.
 
 Una mejora por commit, con el mismo esquema de turnos.
 
-**Estado:** [Actualizar al final: qué pasos y mejoras quedaron terminados.]
+**Estado:** Todos los pasos 1 a 8 y las 3 mejoras completadas exitosamente con consumo de DummyJSON API (`POST auth/login` -> `accessToken` -> `GET auth/me`).
 
 ## 4. Dificultades al sincronizar (pull/push) y cómo las resolvimos
 
