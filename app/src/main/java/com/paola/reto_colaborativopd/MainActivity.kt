@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity() {
     private fun pedirDatos(token: String) {
         lifecycleScope.launch {
             try {
-                val respuesta = RetrofitClient.api.getUsuario("Bearer $token")
+                val respuesta = RetrofitClient.api.getCurrentUser("Bearer $token")
                 val usuario = respuesta.body()
 
                 if (respuesta.isSuccessful && usuario != null) {

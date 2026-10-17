@@ -33,13 +33,15 @@ data class UserResponse(
     val lastName: String
 )
 
-// Paso 5: endpoints (TODO: ajusta las rutas)
+// Paso 5: endpoints para DummyJSON
 interface ApiService {
-    @POST("login")
-    suspend fun login(@Body body: LoginRequest): Response<LoginResponse>
+    @POST("auth/login")
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @GET("usuario")
-    suspend fun getUsuario(@Header("Authorization") auth: String): Response<UserResponse>
+    @GET("auth/me")
+    suspend fun getCurrentUser(
+        @Header("Authorization") token: String
+    ): Response<UserResponse>
 }
 
 // Paso 6: cliente Retrofit
