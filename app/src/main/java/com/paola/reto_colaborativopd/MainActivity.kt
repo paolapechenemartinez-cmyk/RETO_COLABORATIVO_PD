@@ -93,26 +93,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // La función recibe el token por parámetro para ser reutilizable y no depender de variables globales
+    // PASO B: GET auth/me -> enviar "Bearer " + token en cabecera Authorization -> obtener datos del usuario
+    // NOTA: La función recibe el token como parámetro para ser reutilizable y no depender de variables globales.
     private fun pedirDatos(token: String) {
         lifecycleScope.launch {
             try {
+                // Formato de cabecera obligatorio: "Bearer " + token
                 val respuesta = RetrofitClient.api.getCurrentUser("Bearer $token")
                 val usuario = respuesta.body()
 
                 if (respuesta.isSuccessful && usuario != null) {
-                    Log.d("API", "Usuario obtenido: ${usuario.firstName} - ${usuario.email}")
+                    Log.d("API", "Datos protegidos recibidos para: ${usuario.firstName} (${usuario.email})")
                     tvResultado.text = "Nombre: ${usuario.firstName}\nCorreo: ${usuario.email}"
                 } else {
-                    // Token vencido o inválido: borrarlo y volver al formulario
-                    Log.e("API", "Error al obtener usuario. Código: ${respuesta.code()}")
+                    // Si responde 401/404, el token es inválido o vencido: se limpia de SharedPreferences
+                    Log.e("API", "Petición protegida falló. Código HTTP: ${respuesta.code()}")
                     prefs.edit().remove("token").apply()
                     mostrarFormulario(true)
-                    tvResultado.text = "La sesión expiró o es inválida, ingresa de nuevo"
+                    tvResultado.text = "La sesión expiró o es inválida (Error ${respuesta.code()})"
                 }
             } catch (e: Exception) {
-                Log.e("API", "Error de red al pedir datos: ${e.message}")
-                Toast.makeText(this@MainActivity, "No se pudo conectar", Toast.LENGTH_LONG).show()
+                Log.e("API", "Error de red en petición protegida: ${e.message}")
+                Toast.makeText(this@MainActivity, "No se pudo conectar al servidor", Toast.LENGTH_LONG).show()
             }
         }
     }
