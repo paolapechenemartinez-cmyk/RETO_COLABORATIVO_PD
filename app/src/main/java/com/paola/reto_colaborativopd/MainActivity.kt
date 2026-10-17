@@ -1,6 +1,7 @@
 package com.paola.reto_colaborativopd
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Mejora 3: si ya hay token guardado, saltar el formulario
+        // Si ya hay token guardado en SharedPreferences, saltar el formulario
         val tokenGuardado = prefs.getString("token", null)
         if (tokenGuardado != null) {
             mostrarFormulario(false)
@@ -54,31 +55,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Patrón del flujo: login -> recibir accessToken -> realizar petición protegida con Bearer token
+    // PASO A: POST auth/login -> recibir accessToken -> manejar errores
     private fun hacerLogin(usuario: String, password: String) {
         lifecycleScope.launch {
             try {
                 val respuesta = RetrofitClient.api.login(LoginRequest(usuario, password))
 
                 if (respuesta.isSuccessful && respuesta.body() != null) {
-                    val token = respuesta.body()!!.accessToken
-                    // NOTA DE SEGURIDAD: Guardar el token en SharedPreferences sin cifrar representa un riesgo
-                    // si alguien accede al almacenamiento local del dispositivo.
-                    prefs.edit().putString("token", token).apply()
-                    mostrarFormulario(false)
-                    pedirDatos(token)
+                    val token = respuesta.body()?.accessToken
+                    if (!token.isNullOrEmpty()) {
+                        Log.d("API", "Token recibido correctamente: $token")
+                        // NOTA DE SEGURIDAD: Guardar el token en SharedPreferences sin cifrar representa un riesgo
+                        // si alguien accede al almacenamiento local del dispositivo.
+                        prefs.edit().putString("token", token).apply()
+                        mostrarFormulario(false)
+                        pedirDatos(token)
+                    } else {
+                        Log.e("API", "accessToken es nulo o vacío")
+                        tvResultado.text = "Error: Token nulo"
+                    }
                 } else {
-                    // RETO FINAL: el servidor rechazó las credenciales
+                    // Manejo de error cuando el servidor rechaza las credenciales (e.g., 401/400)
+                    Log.e("API", "Login falló con código: ${respuesta.code()}")
                     Toast.makeText(
                         this@MainActivity,
                         "Login fallido: usuario o contraseña incorrectos",
                         Toast.LENGTH_LONG
                     ).show()
-                    tvResultado.text = "Login fallido"
+                    tvResultado.text = "Login fallido (Error ${respuesta.code()})"
                 }
             } catch (e: Exception) {
-                // RETO FINAL: no hubo conexión con el servidor
-                Toast.makeText(this@MainActivity, "No se pudo conectar", Toast.LENGTH_LONG).show()
+                // Manejo de error de conexión/red
+                Log.e("API", "Error de conexión: ${e.message}")
+                Toast.makeText(this@MainActivity, "No se pudo conectar al servidor", Toast.LENGTH_LONG).show()
                 tvResultado.text = "Error de conexión"
             }
         }
@@ -92,14 +101,17 @@ class MainActivity : AppCompatActivity() {
                 val usuario = respuesta.body()
 
                 if (respuesta.isSuccessful && usuario != null) {
+                    Log.d("API", "Usuario obtenido: ${usuario.firstName} - ${usuario.email}")
                     tvResultado.text = "Nombre: ${usuario.firstName}\nCorreo: ${usuario.email}"
                 } else {
                     // Token vencido o inválido: borrarlo y volver al formulario
+                    Log.e("API", "Error al obtener usuario. Código: ${respuesta.code()}")
                     prefs.edit().remove("token").apply()
                     mostrarFormulario(true)
-                    tvResultado.text = "La sesión expiró, ingresa de nuevo"
+                    tvResultado.text = "La sesión expiró o es inválida, ingresa de nuevo"
                 }
             } catch (e: Exception) {
+                Log.e("API", "Error de red al pedir datos: ${e.message}")
                 Toast.makeText(this@MainActivity, "No se pudo conectar", Toast.LENGTH_LONG).show()
             }
         }
