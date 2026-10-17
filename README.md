@@ -33,7 +33,24 @@ Una mejora por commit, con el mismo esquema de turnos.
 
 ## 5. Cómo resolvimos el reto final por escrito
 
-[Pendiente: se completa con la siguiente sección de la guía.]
+1. **Error al modificar la ruta (`@GET("auth/mee")` en lugar de `@GET("auth/me")`):**
+   - Si se cambia la ruta a `/auth/mee`, el servidor responde con un error **HTTP 404 (Not Found)** debido a que dicho recurso no existe en el backend.
+
+2. **Causas del error 401 en `GET /auth/me` tras un login exitoso:**
+   - Enviar únicamente el token sin la palabra clave y el espacio obligatorio `"Bearer "`.
+   - Token mal escrito, ausente o manipulado.
+   - Token vencido o expirado en el servidor.
+
+3. **Explicación del patrón `login` → `token` → `petición protegida`:**
+   - **Login:** La app manda usuario y contraseña al servidor (`POST /auth/login`).
+   - **Token:** El servidor autentica al usuario y entrega un token temporal (`accessToken`).
+   - **Petición Protegida:** Para posteriores peticiones (`GET /auth/me`), la app no vuelve a enviar la contraseña, sino que presenta el token en la cabecera `Authorization: Bearer <accessToken>`.
+
+4. **Uso de parámetros para el token (`getCurrentUser(token)`):**
+   - Pasar el token como argumento hace que la función sea modular, independiente y reutilizable desde cualquier contexto sin depender de variables globales o del estado interno de la Activity.
+
+5. **Riesgo de seguridad de `SharedPreferences` sin cifrar:**
+   - Guardar tokens en `SharedPreferences` en texto plano permite que usuarios con acceso root o herramientas de respaldo (`adb backup`) lean el archivo XML en el almacenamiento interno y comprometan la sesión. En proyectos de producción debe utilizarse `EncryptedSharedPreferences`.
 
 ## Cómo ejecutar el proyecto
 
