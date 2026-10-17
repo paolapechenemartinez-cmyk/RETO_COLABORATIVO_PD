@@ -54,14 +54,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Paso 7: login -> guardar token -> pedir datos
+    // Patrón del flujo: login -> recibir accessToken -> realizar petición protegida con Bearer token
     private fun hacerLogin(usuario: String, password: String) {
         lifecycleScope.launch {
             try {
                 val respuesta = RetrofitClient.api.login(LoginRequest(usuario, password))
 
                 if (respuesta.isSuccessful && respuesta.body() != null) {
-                    val token = respuesta.body()!!.token
+                    val token = respuesta.body()!!.accessToken
+                    // NOTA DE SEGURIDAD: Guardar el token en SharedPreferences sin cifrar representa un riesgo
+                    // si alguien accede al almacenamiento local del dispositivo.
                     prefs.edit().putString("token", token).apply()
                     mostrarFormulario(false)
                     pedirDatos(token)
@@ -82,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // La función recibe el token por parámetro para ser reutilizable y no depender de variables globales
     private fun pedirDatos(token: String) {
         lifecycleScope.launch {
             try {
@@ -89,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                 val usuario = respuesta.body()
 
                 if (respuesta.isSuccessful && usuario != null) {
-                    tvResultado.text = "Nombre: ${usuario.nombre}\nCorreo: ${usuario.correo}"
+                    tvResultado.text = "Nombre: ${usuario.firstName}\nCorreo: ${usuario.email}"
                 } else {
                     // Token vencido o inválido: borrarlo y volver al formulario
                     prefs.edit().remove("token").apply()

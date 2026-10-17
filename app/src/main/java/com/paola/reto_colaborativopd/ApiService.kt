@@ -10,10 +10,28 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 
-// Paso 4: data classes (TODO: ajusta los nombres de los campos a tu API)
-data class LoginRequest(val username: String, val password: String)
-data class LoginResponse(val token: String)
-data class UserResponse(val nombre: String, val correo: String)
+// Paso 4: data classes para DummyJSON
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val id: Int,
+    val username: String,
+    val email: String,
+    val firstName: String,
+    val accessToken: String,
+    val refreshToken: String
+)
+
+data class UserResponse(
+    val id: Int,
+    val username: String,
+    val email: String,
+    val firstName: String,
+    val lastName: String
+)
 
 // Paso 5: endpoints (TODO: ajusta las rutas)
 interface ApiService {
