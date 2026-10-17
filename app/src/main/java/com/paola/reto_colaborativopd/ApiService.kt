@@ -44,9 +44,9 @@ interface ApiService {
     ): Response<UserResponse>
 }
 
-// Paso 6: cliente Retrofit
+// Paso 6: cliente Retrofit para DummyJSON
 object RetrofitClient {
-    private const val BASE_URL = "https://TU_URL_BASE/" // TODO: debe terminar en "/"
+    private const val BASE_URL = "https://dummyjson.com/"
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
